@@ -4,6 +4,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase.CreateLocalPokemonCommand;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase.UpdateLocalPokemonCommand;
@@ -13,6 +14,7 @@ import org.ballastlane.pokeapp.domain.model.PageQuery;
 import org.ballastlane.pokeapp.web.dto.PokemonDtos.CreateLocalPokemonRequest;
 import org.ballastlane.pokeapp.web.dto.PokemonDtos.LocalPokemonResponse;
 import org.ballastlane.pokeapp.web.dto.PokemonDtos.PageResponse;
+import org.ballastlane.pokeapp.web.dto.PokemonDtos.StoredPokeApiIdsResponse;
 import org.ballastlane.pokeapp.web.dto.PokemonDtos.UpdateLocalPokemonRequest;
 import org.ballastlane.pokeapp.web.mapper.PokemonWebMapper;
 import org.springframework.http.ResponseEntity;
@@ -50,6 +52,13 @@ public class LocalPokemonController {
       @RequestParam(required = false) String name) {
     var result = manageLocalPokemon.list(new PageQuery(page, size), name);
     return PokemonWebMapper.toPageResponse(result, PokemonWebMapper::toResponse);
+  }
+
+  @GetMapping("/stored-ids")
+  @Operation(summary = "Which of the given PokeAPI ids (1-100) are stored locally")
+  public StoredPokeApiIdsResponse storedIds(@RequestParam List<Integer> pokeApiIds) {
+    var stored = manageLocalPokemon.findStoredPokeApiIds(pokeApiIds);
+    return new StoredPokeApiIdsResponse(stored.stream().sorted().toList());
   }
 
   @GetMapping("/{id}")

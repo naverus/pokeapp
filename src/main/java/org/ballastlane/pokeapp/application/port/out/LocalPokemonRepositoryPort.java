@@ -1,6 +1,8 @@
 package org.ballastlane.pokeapp.application.port.out;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import org.ballastlane.pokeapp.domain.model.LocalPokemon;
 import org.ballastlane.pokeapp.domain.model.PageQuery;
 import org.ballastlane.pokeapp.domain.model.PageResult;
@@ -18,6 +20,8 @@ public interface LocalPokemonRepositoryPort {
   boolean existsByPokeApiId(int pokeApiId);
 
   Optional<LocalPokemon> findByPokeApiId(int pokeApiId);
+
+  Set<Integer> findExistingPokeApiIds(Collection<Integer> pokeApiIds);
 
   PageResult<LocalPokemon> findAll(PageQuery query, String nameFilter);
 

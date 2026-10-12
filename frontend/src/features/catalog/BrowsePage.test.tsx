@@ -2,7 +2,7 @@ import { screen, within } from '@testing-library/react';
 import { http, HttpResponse } from 'msw';
 import { describe, expect, it } from 'vitest';
 import { bulbasaurSummary, page, pikachuSummary } from '../../test/fixtures';
-import { renderApp } from '../../test/renderApp';
+import { ASH, renderApp } from '../../test/renderApp';
 import { API, server } from '../../test/server';
 
 describe('BrowsePage (US01)', () => {
@@ -17,6 +17,41 @@ describe('BrowsePage (US01)', () => {
     expect(within(card).getByText('Mouse Pokémon · 6 kg')).toBeInTheDocument();
     expect(within(card).getByText(/Static, Lightning Rod/)).toBeInTheDocument();
     expect(within(card).getByText('electric')).toBeInTheDocument();
+  });
+
+  it('tags Pokemon that are already in the collection for signed-in users', async () => {
+    let requestedIds: string | null = null;
+    server.use(
+      http.get(`${API}/pokemon`, () =>
+        HttpResponse.json(page([bulbasaurSummary, pikachuSummary], 0, 12, 2)),
+      ),
+      http.get(`${API}/local-pokemon/stored-ids`, ({ request }) => {
+        requestedIds = new URL(request.url).searchParams.get('pokeApiIds');
+        return HttpResponse.json({ pokeApiIds: [25] });
+      }),
+    );
+    renderApp('/', { as: ASH });
+
+    const pikachu = await screen.findByRole('link', { name: 'View Pikachu (in collection)' });
+    expect(within(pikachu).getByText('In collection')).toBeInTheDocument();
+    const bulbasaur = screen.getByRole('link', { name: 'View Bulbasaur' });
+    expect(within(bulbasaur).queryByText('In collection')).not.toBeInTheDocument();
+    expect(requestedIds).toBe('1,25');
+  });
+
+  it('does not look up the collection for anonymous visitors', async () => {
+    let lookups = 0;
+    server.use(
+      http.get(`${API}/local-pokemon/stored-ids`, () => {
+        lookups += 1;
+        return HttpResponse.json({ pokeApiIds: [25] });
+      }),
+    );
+    renderApp('/');
+
+    const card = await screen.findByRole('link', { name: 'View Pikachu' });
+    expect(within(card).queryByText('In collection')).not.toBeInTheDocument();
+    expect(lookups).toBe(0);
   });
 
   it('requests the next page when paginating', async () => {

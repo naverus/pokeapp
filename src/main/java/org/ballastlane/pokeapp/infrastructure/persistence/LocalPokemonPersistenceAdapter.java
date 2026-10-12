@@ -1,6 +1,8 @@
 package org.ballastlane.pokeapp.infrastructure.persistence;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import org.ballastlane.pokeapp.application.port.out.LocalPokemonRepositoryPort;
 import org.ballastlane.pokeapp.domain.exception.PokemonAlreadySyncedException;
 import org.ballastlane.pokeapp.domain.exception.PokemonNotFoundException;
@@ -59,6 +61,12 @@ public class LocalPokemonPersistenceAdapter implements LocalPokemonRepositoryPor
   @Transactional(readOnly = true)
   public Optional<LocalPokemon> findByPokeApiId(int pokeApiId) {
     return repository.findByPokeApiId(pokeApiId).map(PokemonEntityMapper::toDomain);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Set<Integer> findExistingPokeApiIds(Collection<Integer> pokeApiIds) {
+    return Set.copyOf(repository.findExistingPokeApiIds(pokeApiIds));
   }
 
   @Override

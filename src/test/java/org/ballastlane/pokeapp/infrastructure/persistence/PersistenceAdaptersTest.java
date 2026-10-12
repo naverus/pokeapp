@@ -88,6 +88,13 @@ class PersistenceAdaptersTest {
   }
 
   @Test
+  void shouldReturnOnlyStoredPokeApiIds_whenCheckingMembership() {
+    var stored = pokemonAdapter.findExistingPokeApiIds(List.of(1, 25, 999_999));
+
+    assertThat(stored).containsExactlyInAnyOrder(1, 25);
+  }
+
+  @Test
   void shouldIncrementVersion_whenUpdatingWithCurrentVersion() {
     // given
     var saved = pokemonAdapter.save(LocalPokemon.create(9002, attributes("hoothoot", List.of())));

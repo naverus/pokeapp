@@ -32,6 +32,13 @@ export async function updateLocalPokemon(
   return data;
 }
 
+export async function fetchStoredPokeApiIds(ids: number[]): Promise<number[]> {
+  const { data } = await apiClient.get<{ pokeApiIds: number[] }>('/local-pokemon/stored-ids', {
+    params: { pokeApiIds: ids.join(',') },
+  });
+  return data.pokeApiIds;
+}
+
 export async function deleteLocalPokemon(id: number): Promise<void> {
   await apiClient.delete(`/local-pokemon/${id}`);
 }

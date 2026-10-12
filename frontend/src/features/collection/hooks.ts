@@ -5,6 +5,7 @@ import {
   createLocalPokemon,
   deleteLocalPokemon,
   fetchLocalPokemon,
+  fetchStoredPokeApiIds,
   updateLocalPokemon,
 } from './api';
 
@@ -14,6 +15,20 @@ export function useLocalPokemonPage(page: number, size: number, name: string) {
     queryFn: () => fetchLocalPokemon(page, size, name),
     placeholderData: keepPreviousData,
   });
+}
+
+const NO_IDS: ReadonlySet<number> = new Set();
+
+/** PokeAPI ids (of the given ones) already stored locally; empty while unknown or disabled. */
+export function useStoredPokeApiIds(ids: number[], enabled: boolean): ReadonlySet<number> {
+  const { data } = useQuery({
+    queryKey: queryKeys.localStoredIds(ids),
+    queryFn: () => fetchStoredPokeApiIds(ids),
+    enabled: enabled && ids.length > 0,
+    placeholderData: keepPreviousData,
+    select: (stored) => new Set(stored),
+  });
+  return enabled && data ? data : NO_IDS;
 }
 
 function useInvalidateCollection() {

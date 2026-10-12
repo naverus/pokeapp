@@ -70,13 +70,13 @@ npm run coverage
 npm run lint && npm run format:check && npm run build
 ```
 
-Current results: the backend has 154 tests with 98% line coverage, and the frontend has 34 tests with 98% statement coverage. Frontend tests fail if anything is logged to `console.warn` or `console.error`, which enforces the "no browser console warnings" goal.
+Current results: the backend has 159 tests with 98% line coverage, and the frontend has 36 tests with 98% statement coverage. Frontend tests fail if anything is logged to `console.warn` or `console.error`, which enforces the "no browser console warnings" goal.
 
 ## User stories
 
 | Story | Backend | Frontend |
 |-------|---------|----------|
-| **US01** Paginated list with sprite, category, mass and abilities | `GET /api/v1/pokemon?page&size` | Pokedex grid with pagination and page-size selector |
+| **US01** Paginated list with sprite, category, mass and abilities | `GET /api/v1/pokemon?page&size` | Pokedex grid with pagination and page-size selector; signed-in users see an "In collection" badge on Pokemon already stored locally |
 | **US02** Image, stats, description and evolution chain | `GET /api/v1/pokemon/{idOrName}` | Detail page with stat bars and clickable evolution chain |
 | **US03** Copy into a local relational store with custom fields | `POST /api/v1/local-pokemon/sync/{idOrName}` (one Pokemon); `POST /api/v1/admin/sync-jobs` (on-demand bulk sync of an id range, ADMIN) | "Add to my collection" button; admin-only "Sync Pokemon data" button on the collection page with live progress and a summary |
 | **US04** Update local data with validation | `PUT /api/v1/local-pokemon/{id}`: 400 for an invalid payload, 404 for a missing record, 409 for a stale version | Edit dialog with client-side validation and server errors shown next to each field |
@@ -90,6 +90,7 @@ Current results: the backend has 154 tests with 98% line coverage, and the front
 | GET | `/api/v1/pokemon` | public | US01; cached; 503 if PokeAPI is down |
 | GET | `/api/v1/pokemon/{idOrName}` | public | US02; 404 if not found |
 | GET | `/api/v1/local-pokemon?page&size&name` | USER | paginated; searches name and local name |
+| GET | `/api/v1/local-pokemon/stored-ids?pokeApiIds=1,4,25` | USER | which of the given PokeAPI ids (1-100) are stored locally; drives the "In collection" badge |
 | GET | `/api/v1/local-pokemon/{id}` | USER | 404 if not found |
 | POST | `/api/v1/local-pokemon/sync/{idOrName}` | USER | US03; 201 with `Location`; 409 if already synced |
 | PUT | `/api/v1/local-pokemon/{id}` | USER | US04; the body includes `version` for optimistic locking |

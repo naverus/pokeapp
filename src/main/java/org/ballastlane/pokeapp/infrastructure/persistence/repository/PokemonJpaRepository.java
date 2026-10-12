@@ -1,6 +1,8 @@
 package org.ballastlane.pokeapp.infrastructure.persistence.repository;
 
+import java.util.Collection;
 import java.util.Optional;
+import java.util.Set;
 import org.ballastlane.pokeapp.infrastructure.persistence.entity.PokemonJpaEntity;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -13,6 +15,9 @@ public interface PokemonJpaRepository extends JpaRepository<PokemonJpaEntity, Lo
   boolean existsByPokeApiId(int pokeApiId);
 
   Optional<PokemonJpaEntity> findByPokeApiId(int pokeApiId);
+
+  @Query("select p.pokeApiId from PokemonJpaEntity p where p.pokeApiId in :ids")
+  Set<Integer> findExistingPokeApiIds(@Param("ids") Collection<Integer> ids);
 
   @Query(
       """

@@ -43,6 +43,8 @@ public final class PokemonDtos {
       String description,
       List<EvolutionStageResponse> evolutionChain) {}
 
+  public record StoredPokeApiIdsResponse(List<Integer> pokeApiIds) {}
+
   public record LocalPokemonResponse(
       long id,
       Integer pokeApiId,

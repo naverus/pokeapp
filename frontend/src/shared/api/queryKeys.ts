@@ -4,6 +4,7 @@ export const queryKeys = {
   localAll: ['local-pokemon'] as const,
   localPage: (page: number, size: number, name: string) =>
     ['local-pokemon', 'page', page, size, name] as const,
+  localStoredIds: (ids: number[]) => ['local-pokemon', 'stored-ids', ids.join(',')] as const,
   syncLatest: ['sync-jobs', 'latest'] as const,
   syncJob: (id: string) => ['sync-jobs', 'job', id] as const,
 };

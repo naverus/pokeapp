@@ -1,8 +1,12 @@
 package org.ballastlane.pokeapp.application.service;
 
+import java.util.Collection;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase;
 import org.ballastlane.pokeapp.application.port.out.LocalPokemonRepositoryPort;
+import org.ballastlane.pokeapp.domain.exception.DomainValidationException;
 import org.ballastlane.pokeapp.domain.exception.PokemonAlreadySyncedException;
 import org.ballastlane.pokeapp.domain.exception.PokemonNotFoundException;
 import org.ballastlane.pokeapp.domain.exception.StaleVersionException;
@@ -11,6 +15,8 @@ import org.ballastlane.pokeapp.domain.model.PageQuery;
 import org.ballastlane.pokeapp.domain.model.PageResult;
 
 public class ManageLocalPokemonService implements ManageLocalPokemonUseCase {
+
+  static final int MAX_ID_LOOKUP = 100;
 
   private final LocalPokemonRepositoryPort repository;
 
@@ -52,5 +58,18 @@ public class ManageLocalPokemonService implements ManageLocalPokemonUseCase {
     if (!repository.deleteById(id)) {
       throw PokemonNotFoundException.locally(id);
     }
+  }
+
+  @Override
+  public Set<Integer> findStoredPokeApiIds(Collection<Integer> pokeApiIds) {
+    if (pokeApiIds == null
+        || pokeApiIds.isEmpty()
+        || pokeApiIds.size() > MAX_ID_LOOKUP
+        || pokeApiIds.stream().anyMatch(id -> id == null || id < 1)) {
+      throw new DomainValidationException(
+          Map.of(
+              "pokeApiIds", "must contain between 1 and %d positive ids".formatted(MAX_ID_LOOKUP)));
+    }
+    return Set.copyOf(repository.findExistingPokeApiIds(Set.copyOf(pokeApiIds)));
   }
 }

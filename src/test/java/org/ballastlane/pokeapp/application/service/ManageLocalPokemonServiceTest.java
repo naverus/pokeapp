@@ -9,9 +9,12 @@ import static org.mockito.Mockito.verify;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
+import java.util.stream.IntStream;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase.CreateLocalPokemonCommand;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase.UpdateLocalPokemonCommand;
 import org.ballastlane.pokeapp.application.port.out.LocalPokemonRepositoryPort;
+import org.ballastlane.pokeapp.domain.exception.DomainValidationException;
 import org.ballastlane.pokeapp.domain.exception.PokemonAlreadySyncedException;
 import org.ballastlane.pokeapp.domain.exception.PokemonNotFoundException;
 import org.ballastlane.pokeapp.domain.exception.StaleVersionException;
@@ -48,6 +51,35 @@ class ManageLocalPokemonServiceTest {
 
     // when / then
     assertThat(service.list(query, "  pika ")).isEqualTo(page);
+  }
+
+  @Test
+  void shouldLookUpDistinctIds_whenFindingStoredPokeApiIds() {
+    // given
+    given(repository.findExistingPokeApiIds(Set.of(1, 4, 25))).willReturn(Set.of(1, 25));
+
+    // when
+    var stored = service.findStoredPokeApiIds(List.of(25, 1, 4, 25));
+
+    // then
+    assertThat(stored).containsExactlyInAnyOrder(1, 25);
+  }
+
+  @Test
+  void shouldRejectIdLookup_whenIdsMissingTooManyOrNotPositive() {
+    var tooMany = IntStream.rangeClosed(1, 101).boxed().toList();
+
+    assertThatThrownBy(() -> service.findStoredPokeApiIds(List.of()))
+        .isInstanceOf(DomainValidationException.class);
+    assertThatThrownBy(() -> service.findStoredPokeApiIds(null))
+        .isInstanceOf(DomainValidationException.class);
+    assertThatThrownBy(() -> service.findStoredPokeApiIds(tooMany))
+        .isInstanceOfSatisfying(
+            DomainValidationException.class,
+            ex -> assertThat(ex.errors()).containsKey("pokeApiIds"));
+    assertThatThrownBy(() -> service.findStoredPokeApiIds(List.of(1, 0)))
+        .isInstanceOf(DomainValidationException.class);
+    verify(repository, never()).findExistingPokeApiIds(any());
   }
 
   @Test

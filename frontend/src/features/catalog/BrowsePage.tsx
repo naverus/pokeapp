@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import { useSearchParams } from 'react-router-dom';
 import { ErrorState, Loading } from '../../shared/components/QueryState';
+import { useAuth } from '../auth/useAuth';
+import { useStoredPokeApiIds } from '../collection/hooks';
 import { useCatalogPage } from './hooks';
 import { PokemonCard } from './PokemonCard';
 
@@ -29,6 +31,11 @@ export function BrowsePage() {
     ? Number(searchParams.get('size'))
     : PAGE_SIZES[0];
   const { data, error, isPending, isFetching, refetch } = useCatalogPage(page - 1, size);
+  const { isAuthenticated } = useAuth();
+  const storedIds = useStoredPokeApiIds(
+    data?.content.map((pokemon) => pokemon.id) ?? [],
+    isAuthenticated,
+  );
 
   const updateParams = (nextPage: number, nextSize: number) =>
     setSearchParams({ page: String(nextPage), size: String(nextSize) });
@@ -75,7 +82,7 @@ export function BrowsePage() {
           <Grid container spacing={2}>
             {data.content.map((pokemon) => (
               <Grid key={pokemon.id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-                <PokemonCard pokemon={pokemon} />
+                <PokemonCard pokemon={pokemon} inCollection={storedIds.has(pokemon.id)} />
               </Grid>
             ))}
           </Grid>

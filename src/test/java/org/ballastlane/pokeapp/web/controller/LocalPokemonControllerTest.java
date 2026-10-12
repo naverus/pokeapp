@@ -19,6 +19,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase;
 import org.ballastlane.pokeapp.application.port.in.ManageLocalPokemonUseCase.UpdateLocalPokemonCommand;
 import org.ballastlane.pokeapp.application.port.in.SyncPokemonUseCase;
@@ -123,6 +124,37 @@ class LocalPokemonControllerTest {
     mockMvc
         .perform(get("/api/v1/local-pokemon/abc").with(ash()))
         .andExpect(status().isBadRequest());
+  }
+
+  @Test
+  void shouldReturnSortedStoredIds_whenCheckingMembership() throws Exception {
+    given(manageLocalPokemon.findStoredPokeApiIds(List.of(1, 25, 4))).willReturn(Set.of(25, 1));
+
+    mockMvc
+        .perform(get("/api/v1/local-pokemon/stored-ids?pokeApiIds=1,25,4").with(ash()))
+        .andExpect(status().isOk())
+        .andExpect(jsonPath("$.pokeApiIds[0]").value(1))
+        .andExpect(jsonPath("$.pokeApiIds[1]").value(25));
+  }
+
+  @Test
+  void shouldRejectStoredIdsLookup_whenAnonymousOrInvalid() throws Exception {
+    given(manageLocalPokemon.findStoredPokeApiIds(List.of(0)))
+        .willThrow(new DomainValidationException(Map.of("pokeApiIds", "invalid")));
+
+    mockMvc
+        .perform(get("/api/v1/local-pokemon/stored-ids?pokeApiIds=1"))
+        .andExpect(status().isUnauthorized());
+    mockMvc
+        .perform(get("/api/v1/local-pokemon/stored-ids").with(ash()))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(get("/api/v1/local-pokemon/stored-ids?pokeApiIds=abc").with(ash()))
+        .andExpect(status().isBadRequest());
+    mockMvc
+        .perform(get("/api/v1/local-pokemon/stored-ids?pokeApiIds=0").with(ash()))
+        .andExpect(status().isBadRequest())
+        .andExpect(jsonPath("$.errors.pokeApiIds").value("invalid"));
   }
 
   @Test

@@ -1,5 +1,7 @@
 package org.ballastlane.pokeapp.application.port.in;
 
+import java.util.Collection;
+import java.util.Set;
 import org.ballastlane.pokeapp.domain.model.LocalPokemon;
 import org.ballastlane.pokeapp.domain.model.PageQuery;
 import org.ballastlane.pokeapp.domain.model.PageResult;
@@ -17,6 +19,9 @@ public interface ManageLocalPokemonUseCase {
   LocalPokemon update(UpdateLocalPokemonCommand command);
 
   void delete(long id);
+
+  /** Returns the subset of the given PokeAPI ids that are stored locally (1 to 100 ids). */
+  Set<Integer> findStoredPokeApiIds(Collection<Integer> pokeApiIds);
 
   record CreateLocalPokemonCommand(Integer pokeApiId, PokemonAttributes attributes) {}
 
