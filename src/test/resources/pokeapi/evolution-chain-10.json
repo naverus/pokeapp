@@ -1,0 +1,21 @@
+{
+  "id": 10,
+  "baby_trigger_item": null,
+  "chain": {
+    "is_baby": true,
+    "species": { "name": "pichu", "url": "https://pokeapi.co/api/v2/pokemon-species/172/" },
+    "evolves_to": [
+      {
+        "is_baby": false,
+        "species": { "name": "pikachu", "url": "https://pokeapi.co/api/v2/pokemon-species/25/" },
+        "evolves_to": [
+          {
+            "is_baby": false,
+            "species": { "name": "raichu", "url": "https://pokeapi.co/api/v2/pokemon-species/26/" },
+            "evolves_to": []
+          }
+        ]
+      }
+    ]
+  }
+}

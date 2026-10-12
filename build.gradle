@@ -1,0 +1,119 @@
+plugins {
+    id 'java'
+    id 'jacoco'
+    id 'org.springframework.boot' version '3.5.6'
+    id 'io.spring.dependency-management' version '1.1.7'
+    id 'com.diffplug.spotless' version '7.2.1'
+}
+
+group = 'org.ballastlane'
+version = '0.0.1-SNAPSHOT'
+description = 'ballastlane-pokeapp'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    mockitoAgent
+}
+
+// 1.21.4+ is required to talk to Docker Engine 29 (minimum API version 1.44)
+ext['testcontainers.version'] = '1.21.4'
+
+ext {
+    jjwtVersion = '0.12.6'
+    springdocVersion = '2.8.13'
+    archunitVersion = '1.4.1'
+    wiremockVersion = '3.13.1'
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
+    implementation 'org.flywaydb:flyway-core'
+    implementation 'org.flywaydb:flyway-mysql'
+    implementation "io.jsonwebtoken:jjwt-api:${jjwtVersion}"
+    implementation "org.springdoc:springdoc-openapi-starter-webmvc-ui:${springdocVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-impl:${jjwtVersion}"
+    runtimeOnly "io.jsonwebtoken:jjwt-jackson:${jjwtVersion}"
+    runtimeOnly 'com.mysql:mysql-connector-j'
+
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    testImplementation 'org.springframework.boot:spring-boot-testcontainers'
+    testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.testcontainers:junit-jupiter'
+    testImplementation 'org.testcontainers:mysql'
+    testImplementation "com.tngtech.archunit:archunit-junit5:${archunitVersion}"
+    testImplementation "org.wiremock:wiremock-standalone:${wiremockVersion}"
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    mockitoAgent('org.mockito:mockito-core') { transitive = false }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.compilerArgs += ['-Xlint:all', '-Xlint:-processing', '-Xlint:-serial', '-parameters']
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+    jvmArgumentProviders.add({ ["-javaagent:${configurations.mockitoAgent.asPath}", '-Xshare:off'] } as CommandLineArgumentProvider)
+    finalizedBy tasks.named('jacocoTestReport')
+}
+
+def coverageExclusions = [
+        'org/ballastlane/pokeapp/BallastlanePokeappApplication*',
+        'org/ballastlane/pokeapp/config/**',
+        'org/ballastlane/pokeapp/**/dto/**',
+        'org/ballastlane/pokeapp/infrastructure/persistence/entity/**'
+]
+
+tasks.named('jacocoTestReport') {
+    dependsOn tasks.named('test')
+    reports {
+        xml.required = true
+        html.required = true
+    }
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
+}
+
+tasks.named('jacocoTestCoverageVerification') {
+    dependsOn tasks.named('test')
+    classDirectories.setFrom(files(classDirectories.files.collect {
+        fileTree(dir: it, exclude: coverageExclusions)
+    }))
+    violationRules {
+        rule {
+            limit {
+                counter = 'LINE'
+                minimum = 0.80
+            }
+        }
+    }
+}
+
+tasks.named('check') {
+    dependsOn tasks.named('jacocoTestCoverageVerification')
+}
+
+spotless {
+    java {
+        target 'src/**/*.java'
+        googleJavaFormat()
+        removeUnusedImports()
+        trimTrailingWhitespace()
+        endWithNewline()
+    }
+}

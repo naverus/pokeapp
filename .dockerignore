@@ -1,0 +1,11 @@
+.git
+.gradle
+.idea
+build
+bin
+out
+*.iml
+*.pdf
+frontend
+docs
+.cursor
