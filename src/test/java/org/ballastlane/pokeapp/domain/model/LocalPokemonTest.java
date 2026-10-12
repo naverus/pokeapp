@@ -62,6 +62,49 @@ class LocalPokemonTest {
   }
 
   @Test
+  void shouldReplaceCatalogFieldsAndKeepLocalFields_whenRefreshedFromCatalog() {
+    // given
+    var created = Instant.parse("2026-01-01T00:00:00Z");
+    var local =
+        new LocalPokemon(
+            7L,
+            25,
+            new PokemonAttributes(
+                "old-name",
+                "Pika",
+                "Kanto",
+                "Old category",
+                1.0,
+                1.0,
+                null,
+                "old",
+                List.of("normal"),
+                List.of("run-away"),
+                List.of("starter")),
+            3L,
+            created,
+            created);
+    var detail = PokemonFixtures.pikachuDetail();
+
+    // when
+    var refreshed = local.refreshFromCatalog(detail);
+
+    // then
+    assertThat(refreshed.id()).isEqualTo(7L);
+    assertThat(refreshed.version()).isEqualTo(3L);
+    assertThat(refreshed.attributes().name()).isEqualTo("pikachu");
+    assertThat(refreshed.attributes().category()).isEqualTo("Mouse Pokemon");
+    assertThat(refreshed.attributes().heightM()).isEqualTo(0.4);
+    assertThat(refreshed.attributes().spriteUrl()).isEqualTo(detail.imageUrl());
+    assertThat(refreshed.attributes().description()).isEqualTo(detail.description());
+    assertThat(refreshed.attributes().types()).containsExactly("electric");
+    assertThat(refreshed.attributes().abilities()).containsExactly("static", "lightning-rod");
+    assertThat(refreshed.attributes().localName()).isEqualTo("Pika");
+    assertThat(refreshed.attributes().region()).isEqualTo("Kanto");
+    assertThat(refreshed.attributes().tags()).containsExactly("starter");
+  }
+
+  @Test
   void shouldCreateManualEntryWithoutPokeApiId_whenCreatedManually() {
     // when
     var local = LocalPokemon.create(null, PokemonFixtures.pikachuAttributes());

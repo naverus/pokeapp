@@ -13,7 +13,7 @@ Single Gradle module. Layers are packages under `org.ballastlane.pokeapp`, and t
 |---------|----------|---------------|
 | `domain` | Entities/value objects (records or final classes), domain rules, domain exceptions | JDK only |
 | `application` | `port.in` (use case interfaces + commands/queries), `port.out` (driven ports), `service` (use case implementations) | `domain` |
-| `infrastructure` | Driven adapters: `pokeapi` (HTTP client), `persistence` (JPA), `security` (JWT, BCrypt) | `application`, `domain`, frameworks |
+| `infrastructure` | Driven adapters: `pokeapi` (HTTP client), `persistence` (JPA), `security` (JWT, BCrypt), `sync` (in-memory job store) | `application`, `domain`, frameworks |
 | `web` | Driving adapters: REST controllers, request/response DTOs, exception handler, web mappers | `application`, `domain`, Spring Web |
 | `config` | Spring `@Configuration` wiring use cases into beans, properties | everything |
 

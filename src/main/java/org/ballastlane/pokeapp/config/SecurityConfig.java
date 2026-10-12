@@ -56,7 +56,7 @@ public class SecurityConfig {
                         "/swagger-ui/**",
                         "/swagger-ui.html")
                     .permitAll()
-                    .requestMatchers("/actuator/**")
+                    .requestMatchers("/actuator/**", "/api/v1/admin/**")
                     .hasRole("ADMIN")
                     .requestMatchers(HttpMethod.POST, LOCAL_POKEMON)
                     .hasRole("ADMIN")

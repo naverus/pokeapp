@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import {
   Alert,
   Box,
@@ -16,10 +16,11 @@ import AddIcon from '@mui/icons-material/Add';
 import SearchIcon from '@mui/icons-material/Search';
 import { Link as RouterLink } from 'react-router-dom';
 import { errorMessage } from '../../shared/api/errors';
-import type { LocalPokemon } from '../../shared/api/types';
+import type { LocalPokemon, SyncJob } from '../../shared/api/types';
 import { ErrorState, Loading } from '../../shared/components/QueryState';
 import { displayName } from '../../shared/format';
 import { useAuth } from '../auth/useAuth';
+import { SyncPokemonButton } from '../sync/SyncPokemonButton';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import {
   useCreateLocalPokemon,
@@ -58,9 +59,22 @@ export function CollectionPage() {
   const deletePokemon = useDeleteLocalPokemon();
   const [form, setForm] = useState<FormState>(null);
   const [toDelete, setToDelete] = useState<LocalPokemon | null>(null);
-  const [notice, setNotice] = useState<{ severity: 'success' | 'error'; message: string } | null>(
-    null,
-  );
+  const [notice, setNotice] = useState<{
+    severity: 'success' | 'warning' | 'error';
+    message: string;
+  } | null>(null);
+
+  const notifySyncFinished = useCallback((job: SyncJob) => {
+    const summary = `${job.inserted} new, ${job.updated} updated, ${job.failed} failed`;
+    if (job.status === 'FAILED') {
+      setNotice({ severity: 'error', message: `Sync failed after ${summary}` });
+    } else {
+      setNotice({
+        severity: job.failed > 0 ? 'warning' : 'success',
+        message: `Synced: ${summary}`,
+      });
+    }
+  }, []);
 
   const confirmDelete = () => {
     if (!toDelete) return;
@@ -108,6 +122,7 @@ export function CollectionPage() {
               },
             }}
           />
+          {isAdmin && <SyncPokemonButton onFinished={notifySyncFinished} />}
           {isAdmin && (
             <Button
               variant="contained"
@@ -187,7 +202,7 @@ export function CollectionPage() {
       />
 
       {notice && (
-        <Snackbar open autoHideDuration={3000} onClose={() => setNotice(null)}>
+        <Snackbar open autoHideDuration={4000} onClose={() => setNotice(null)}>
           <Alert severity={notice.severity} variant="filled" onClose={() => setNotice(null)}>
             {notice.message}
           </Alert>

@@ -9,6 +9,7 @@ import org.ballastlane.pokeapp.domain.exception.InvalidCredentialsException;
 import org.ballastlane.pokeapp.domain.exception.PokemonAlreadySyncedException;
 import org.ballastlane.pokeapp.domain.exception.PokemonNotFoundException;
 import org.ballastlane.pokeapp.domain.exception.StaleVersionException;
+import org.ballastlane.pokeapp.domain.exception.SyncAlreadyRunningException;
 import org.ballastlane.pokeapp.domain.exception.UsernameAlreadyTakenException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -60,7 +61,8 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
   @ExceptionHandler({
     PokemonAlreadySyncedException.class,
     UsernameAlreadyTakenException.class,
-    StaleVersionException.class
+    StaleVersionException.class,
+    SyncAlreadyRunningException.class
   })
   ProblemDetail handleConflict(DomainException ex) {
     return problem(HttpStatus.CONFLICT, "Conflict", ex);

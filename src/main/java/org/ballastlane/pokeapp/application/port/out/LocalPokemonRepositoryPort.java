@@ -17,6 +17,8 @@ public interface LocalPokemonRepositoryPort {
 
   boolean existsByPokeApiId(int pokeApiId);
 
+  Optional<LocalPokemon> findByPokeApiId(int pokeApiId);
+
   PageResult<LocalPokemon> findAll(PageQuery query, String nameFilter);
 
   boolean deleteById(long id);

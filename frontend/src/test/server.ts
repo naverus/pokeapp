@@ -8,6 +8,7 @@ export const handlers = [
   http.get(`${API}/pokemon`, () => HttpResponse.json(page([pikachuSummary], 0, 12, 1))),
   http.get(`${API}/pokemon/:idOrName`, () => HttpResponse.json(pikachuDetail)),
   http.get(`${API}/local-pokemon`, () => HttpResponse.json(page([storedPikachu]))),
+  http.get(`${API}/admin/sync-jobs/latest`, () => new HttpResponse(null, { status: 204 })),
   http.post(`${API}/auth/login`, async ({ request }) => {
     const body = (await request.json()) as { username: string; password: string };
     if (body.password !== 'pikachu123' && body.password !== 'admin123') {

@@ -57,6 +57,12 @@ public class LocalPokemonPersistenceAdapter implements LocalPokemonRepositoryPor
 
   @Override
   @Transactional(readOnly = true)
+  public Optional<LocalPokemon> findByPokeApiId(int pokeApiId) {
+    return repository.findByPokeApiId(pokeApiId).map(PokemonEntityMapper::toDomain);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
   public PageResult<LocalPokemon> findAll(PageQuery query, String nameFilter) {
     var pageable = PageRequest.of(query.page(), query.size(), Sort.by("id"));
     var page =

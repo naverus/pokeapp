@@ -38,6 +38,24 @@ public record LocalPokemon(
     return create(detail.id(), attributes);
   }
 
+  /** Replaces the PokeAPI-owned fields and keeps the proprietary ones (localName, region, tags). */
+  public LocalPokemon refreshFromCatalog(PokemonDetail detail) {
+    var refreshed =
+        new PokemonAttributes(
+            detail.name(),
+            attributes.localName(),
+            attributes.region(),
+            detail.category(),
+            detail.heightM(),
+            detail.weightKg(),
+            detail.imageUrl(),
+            detail.description(),
+            detail.types(),
+            detail.abilities(),
+            attributes.tags());
+    return withAttributes(refreshed);
+  }
+
   public LocalPokemon withAttributes(PokemonAttributes changes) {
     return new LocalPokemon(id, pokeApiId, changes, version, createdAt, updatedAt);
   }

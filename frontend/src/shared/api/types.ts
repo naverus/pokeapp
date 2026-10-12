@@ -86,6 +86,29 @@ export interface CreateLocalPokemonPayload extends LocalPokemonPayload {
   pokeApiId?: number | null;
 }
 
+export type SyncJobStatus = 'RUNNING' | 'COMPLETED' | 'FAILED';
+
+export interface SyncRangePayload {
+  fromId: number;
+  toId: number;
+}
+
+export interface SyncJob {
+  id: string;
+  status: SyncJobStatus;
+  fromId: number;
+  toId: number;
+  total: number;
+  processed: number;
+  inserted: number;
+  updated: number;
+  failed: number;
+  errors: string[];
+  requestedBy: string;
+  startedAt: string;
+  finishedAt: string | null;
+}
+
 export interface TokenResponse {
   accessToken: string;
   tokenType: string;

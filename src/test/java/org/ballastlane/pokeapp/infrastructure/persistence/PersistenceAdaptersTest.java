@@ -80,6 +80,14 @@ class PersistenceAdaptersTest {
   }
 
   @Test
+  void shouldFindByPokeApiId_whenRowExists() {
+    var seeded = pokemonAdapter.findByPokeApiId(25).orElseThrow();
+
+    assertThat(seeded.attributes().name()).isEqualTo("pikachu");
+    assertThat(pokemonAdapter.findByPokeApiId(999_999)).isEmpty();
+  }
+
+  @Test
   void shouldIncrementVersion_whenUpdatingWithCurrentVersion() {
     // given
     var saved = pokemonAdapter.save(LocalPokemon.create(9002, attributes("hoothoot", List.of())));
