@@ -104,7 +104,25 @@ class BulkSyncPokemonServiceTest {
     assertThat(finished.status()).isEqualTo(SyncJobStatus.COMPLETED);
     assertThat(finished.inserted()).isEqualTo(1);
     assertThat(finished.failed()).isEqualTo(2);
-    assertThat(finished.errors()).containsExactly("#1: not found in PokeAPI", "#2: PokeAPI down");
+    assertThat(finished.errors())
+        .containsExactly(
+            "#1: no Pokémon with this Pokédex number", "#2: the Pokédex is unreachable right now");
+  }
+
+  @Test
+  void shouldHideTechnicalDetails_whenSavingFailsUnexpectedly() {
+    // given
+    given(catalog.findDetail("1")).willReturn(Optional.of(detail(1, "bulbasaur")));
+    given(repository.findByPokeApiId(1)).willReturn(Optional.empty());
+    given(repository.save(any())).willThrow(new IllegalStateException("JDBC connection reset"));
+
+    // when
+    var job = service.start(new SyncRange(1, 1), "admin");
+
+    // then
+    var finished = service.find(job.id()).orElseThrow();
+    assertThat(finished.status()).isEqualTo(SyncJobStatus.COMPLETED);
+    assertThat(finished.errors()).containsExactly("#1: something went wrong while saving it");
   }
 
   @Test
@@ -151,7 +169,7 @@ class BulkSyncPokemonServiceTest {
     // when / then
     assertThatThrownBy(() -> service.start(new SyncRange(1, 5), "admin"))
         .isInstanceOf(SyncAlreadyRunningException.class)
-        .hasMessageContaining(running.id().toString());
+        .hasMessage("A restock is already in progress. Hang tight until it finishes!");
     assertThat(service.latest()).contains(running);
   }
 
@@ -186,7 +204,9 @@ class BulkSyncPokemonServiceTest {
     // then
     var finished = service.find(job.id()).orElseThrow();
     assertThat(finished.status()).isEqualTo(SyncJobStatus.FAILED);
-    assertThat(finished.errors()).anyMatch(error -> error.contains("store unavailable"));
+    assertThat(finished.errors())
+        .containsExactly("The restock was interrupted. Please try again.")
+        .noneMatch(error -> error.contains("store unavailable"));
   }
 
   private BulkSyncPokemonService newService(Executor executor) {

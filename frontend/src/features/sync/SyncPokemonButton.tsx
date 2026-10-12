@@ -1,16 +1,17 @@
 import { useState } from 'react';
 import { Button, CircularProgress } from '@mui/material';
-import SyncIcon from '@mui/icons-material/Sync';
+import CatchingPokemonIcon from '@mui/icons-material/CatchingPokemon';
 import { errorMessage } from '../../shared/api/errors';
 import type { SyncJob } from '../../shared/api/types';
 import { useLatestSyncJob, useStartSync, useSyncJob } from './hooks';
+import { RESTOCK_TEXT } from './restockCopy';
 import { SyncPokemonDialog } from './SyncPokemonDialog';
 
 interface SyncPokemonButtonProps {
   onFinished: (job: SyncJob) => void;
 }
 
-/** Admin-only entry point for the on-demand bulk synchronization (US03). */
+/** Admin-only entry point for the on-demand bulk synchronization (US03), shown as "Restock". */
 export function SyncPokemonButton({ onFinished }: SyncPokemonButtonProps) {
   const [open, setOpen] = useState(false);
   const [startedId, setStartedId] = useState<string | null>(null);
@@ -24,10 +25,10 @@ export function SyncPokemonButton({ onFinished }: SyncPokemonButtonProps) {
     <>
       <Button
         variant="outlined"
-        startIcon={running ? <CircularProgress size={18} /> : <SyncIcon />}
+        startIcon={running ? <CircularProgress size={18} /> : <CatchingPokemonIcon />}
         onClick={() => setOpen(true)}
       >
-        Sync Pokemon data
+        {RESTOCK_TEXT.button}
       </Button>
       {open && (
         <SyncPokemonDialog

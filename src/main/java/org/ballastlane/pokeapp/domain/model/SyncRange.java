@@ -14,16 +14,16 @@ public record SyncRange(int fromId, int toId) {
         .check(
             fromId >= 1 && fromId <= MAX_POKEAPI_ID,
             "fromId",
-            "must be between 1 and %d".formatted(MAX_POKEAPI_ID))
+            "must be a Pokédex number between 1 and %d".formatted(MAX_POKEAPI_ID))
         .check(
             toId >= 1 && toId <= MAX_POKEAPI_ID,
             "toId",
-            "must be between 1 and %d".formatted(MAX_POKEAPI_ID))
-        .check(toId >= fromId, "toId", "must be greater than or equal to fromId")
+            "must be a Pokédex number between 1 and %d".formatted(MAX_POKEAPI_ID))
+        .check(toId >= fromId, "toId", "must be at or after fromId")
         .check(
             toId - fromId < MAX_SIZE,
             "toId",
-            "range must contain at most %d Pokemon".formatted(MAX_SIZE))
+            "a restock can include at most %d Pokémon".formatted(MAX_SIZE))
         .throwIfAny();
   }
 

@@ -23,7 +23,9 @@ import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
 
 @RestController
 @RequestMapping("/api/v1/admin/sync-jobs")
-@Tag(name = "Pokemon synchronization", description = "On-demand bulk synchronization (ADMIN)")
+@Tag(
+    name = "Collection restock",
+    description = "Restock Collection: on-demand bulk import from the Pokédex (ADMIN)")
 @SecurityRequirement(name = "bearerAuth")
 public class SyncJobController {
 
@@ -36,8 +38,8 @@ public class SyncJobController {
   @PostMapping
   @Operation(
       summary =
-          "US03 - Start a background sync of a PokeAPI id range (default 1-151): inserts missing"
-              + " Pokemon and refreshes catalog fields of stored ones")
+          "US03 - Start a background restock of a Pokédex number range (default 1-151): catches"
+              + " missing Pokemon and refreshes the Pokédex info of stored ones")
   public ResponseEntity<SyncJobResponse> start(
       @Valid @RequestBody(required = false) StartSyncJobRequest request, Principal principal) {
     var job = bulkSync.start(SyncJobWebMapper.toRange(request), principal.getName());
@@ -50,7 +52,7 @@ public class SyncJobController {
   }
 
   @GetMapping("/latest")
-  @Operation(summary = "Most recent sync job, or 204 when none has run since startup")
+  @Operation(summary = "Most recent restock, or 204 when none has run since startup")
   public ResponseEntity<SyncJobResponse> latest() {
     return bulkSync
         .latest()
@@ -59,7 +61,7 @@ public class SyncJobController {
   }
 
   @GetMapping("/{id}")
-  @Operation(summary = "Progress of a sync job")
+  @Operation(summary = "Progress of a restock")
   public SyncJobResponse get(@PathVariable UUID id) {
     return bulkSync
         .find(id)
@@ -67,6 +69,6 @@ public class SyncJobController {
         .orElseThrow(
             () ->
                 new ResponseStatusException(
-                    HttpStatus.NOT_FOUND, "Sync job %s was not found".formatted(id)));
+                    HttpStatus.NOT_FOUND, "Restock %s was not found".formatted(id)));
   }
 }

@@ -3,6 +3,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Grid,
   InputAdornment,
   LinearProgress,
@@ -13,6 +14,7 @@ import {
   Typography,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
+import CatchingPokemonIcon from '@mui/icons-material/CatchingPokemon';
 import SearchIcon from '@mui/icons-material/Search';
 import { Link as RouterLink } from 'react-router-dom';
 import { errorMessage } from '../../shared/api/errors';
@@ -20,9 +22,11 @@ import type { LocalPokemon, SyncJob } from '../../shared/api/types';
 import { ErrorState, Loading } from '../../shared/components/QueryState';
 import { displayName } from '../../shared/format';
 import { useAuth } from '../auth/useAuth';
+import { restockNotice } from '../sync/restockCopy';
 import { SyncPokemonButton } from '../sync/SyncPokemonButton';
 import { ConfirmDeleteDialog } from './ConfirmDeleteDialog';
 import {
+  useCollectionSize,
   useCreateLocalPokemon,
   useDeleteLocalPokemon,
   useLocalPokemonPage,
@@ -44,12 +48,17 @@ function useDebouncedValue(value: string, delayMs: number): string {
   return debounced;
 }
 
+function collectionCounterLabel(total?: number, matching?: number): string | null {
+  if (total === undefined) return null;
+  return matching === undefined ? `${total} Pokémon` : `${matching} of ${total} Pokémon`;
+}
+
 export function CollectionPage() {
   const { isAdmin } = useAuth();
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState('');
   const name = useDebouncedValue(search.trim(), 300);
-  const { data, error, isPending, isFetching, refetch } = useLocalPokemonPage(
+  const { data, error, isPending, isFetching, isPlaceholderData, refetch } = useLocalPokemonPage(
     page - 1,
     PAGE_SIZE,
     name,
@@ -64,17 +73,12 @@ export function CollectionPage() {
     message: string;
   } | null>(null);
 
-  const notifySyncFinished = useCallback((job: SyncJob) => {
-    const summary = `${job.inserted} new, ${job.updated} updated, ${job.failed} failed`;
-    if (job.status === 'FAILED') {
-      setNotice({ severity: 'error', message: `Sync failed after ${summary}` });
-    } else {
-      setNotice({
-        severity: job.failed > 0 ? 'warning' : 'success',
-        message: `Synced: ${summary}`,
-      });
-    }
-  }, []);
+  const notifySyncFinished = useCallback((job: SyncJob) => setNotice(restockNotice(job)), []);
+  const collectionSize = useCollectionSize();
+  const counterLabel = collectionCounterLabel(
+    collectionSize,
+    name && !isPlaceholderData ? data?.totalElements : undefined,
+  );
 
   const confirmDelete = () => {
     if (!toDelete) return;
@@ -95,9 +99,20 @@ export function CollectionPage() {
         spacing={2}
       >
         <Box>
-          <Typography variant="h4" component="h1">
-            My collection
-          </Typography>
+          <Stack direction="row" spacing={1.5} alignItems="center">
+            <Typography variant="h4" component="h1">
+              My collection
+            </Typography>
+            {counterLabel && (
+              <Chip
+                icon={<CatchingPokemonIcon />}
+                label={counterLabel}
+                color="primary"
+                variant="outlined"
+                aria-label={`Pokémon count: ${counterLabel}`}
+              />
+            )}
+          </Stack>
           <Typography color="text.secondary">
             Pokémon stored in the local database, enriched with your own fields
           </Typography>

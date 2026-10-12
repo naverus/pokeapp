@@ -116,13 +116,15 @@ class SyncJobControllerTest {
 
   @Test
   void shouldReturn409_whenJobAlreadyRunning() throws Exception {
-    given(bulkSync.start(SyncRange.DEFAULT, "admin"))
-        .willThrow(new SyncAlreadyRunningException(UUID.randomUUID()));
+    given(bulkSync.start(SyncRange.DEFAULT, "admin")).willThrow(new SyncAlreadyRunningException());
 
     mockMvc
         .perform(post(URL).with(admin()))
         .andExpect(status().isConflict())
-        .andExpect(jsonPath("$.title").value("Conflict"));
+        .andExpect(jsonPath("$.title").value("Conflict"))
+        .andExpect(
+            jsonPath("$.detail")
+                .value("A restock is already in progress. Hang tight until it finishes!"));
   }
 
   @Test

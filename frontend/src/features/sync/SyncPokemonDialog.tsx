@@ -4,6 +4,7 @@ import {
   Alert,
   Box,
   Button,
+  Chip,
   Dialog,
   DialogActions,
   DialogContent,
@@ -11,10 +12,19 @@ import {
   DialogTitle,
   Grid,
   LinearProgress,
+  Stack,
   TextField,
   Typography,
 } from '@mui/material';
 import type { SyncJob, SyncRangePayload } from '../../shared/api/types';
+import {
+  QUICK_PICKS,
+  RESTOCK_TEXT,
+  restockCounters,
+  restockHeadline,
+  restockProgress,
+  restockSeverity,
+} from './restockCopy';
 import {
   DEFAULT_SYNC_RANGE,
   MAX_POKEAPI_ID,
@@ -32,40 +42,42 @@ interface SyncPokemonDialogProps {
   onClose: () => void;
 }
 
-function counters(job: SyncJob): string {
-  return `${job.inserted} new, ${job.updated} updated, ${job.failed} failed`;
-}
-
 function JobSummary({ job }: { job: SyncJob }) {
   if (job.status === 'RUNNING') {
     const percent = job.total === 0 ? 0 : Math.round((job.processed / job.total) * 100);
     return (
       <Box>
-        <Typography gutterBottom>
-          Syncing #{job.fromId}–#{job.toId}: {job.processed} of {job.total} processed
-        </Typography>
-        <LinearProgress variant="determinate" value={percent} aria-label="Sync progress" />
+        <Typography gutterBottom>{restockProgress(job)}</Typography>
+        <LinearProgress
+          variant="determinate"
+          value={percent}
+          aria-label={RESTOCK_TEXT.progressLabel}
+        />
         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-          {counters(job)}
+          {restockCounters(job)}
         </Typography>
       </Box>
     );
   }
-  const severity = job.status === 'FAILED' ? 'error' : job.failed > 0 ? 'warning' : 'success';
   return (
-    <Alert severity={severity}>
-      <Typography variant="body2">
-        Last sync (#{job.fromId}–#{job.toId}) {job.status === 'FAILED' ? 'failed' : 'finished'}:{' '}
-        {counters(job)}
+    <Alert severity={restockSeverity(job)}>
+      <Typography variant="body2">{restockHeadline(job)}</Typography>
+      <Typography variant="caption" color="text.secondary">
+        #{job.fromId}–#{job.toId}: {restockCounters(job)}
       </Typography>
       {job.errors.length > 0 && (
-        <Box component="ul" sx={{ m: 0, pl: 2 }}>
-          {job.errors.map((message) => (
-            <li key={message}>
-              <Typography variant="caption">{message}</Typography>
-            </li>
-          ))}
-        </Box>
+        <>
+          <Typography variant="body2" sx={{ mt: 1 }}>
+            {RESTOCK_TEXT.gotAway}
+          </Typography>
+          <Box component="ul" sx={{ m: 0, pl: 2 }}>
+            {job.errors.map((message) => (
+              <li key={message}>
+                <Typography variant="caption">{message}</Typography>
+              </li>
+            ))}
+          </Box>
+        </>
       )}
     </Alert>
   );
@@ -82,6 +94,7 @@ export function SyncPokemonDialog({
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<SyncFormInput, unknown, SyncFormValues>({
     resolver: zodResolver(syncFormSchema),
@@ -89,29 +102,53 @@ export function SyncPokemonDialog({
   });
   const running = job?.status === 'RUNNING';
 
+  const pick = (fromId: number, toId: number) => {
+    setValue('fromId', fromId, { shouldValidate: true });
+    setValue('toId', toId, { shouldValidate: true });
+  };
+
   return (
-    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" aria-labelledby="sync-title">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm" aria-labelledby="restock-title">
       <form onSubmit={handleSubmit((values) => onStart(values))} noValidate>
-        <DialogTitle id="sync-title">Sync Pokémon data</DialogTitle>
+        <DialogTitle id="restock-title">{RESTOCK_TEXT.title}</DialogTitle>
         <DialogContent dividers>
-          <DialogContentText sx={{ mb: 2 }}>
-            Imports the PokeAPI range into the local database. Pokémon already stored get their
-            catalog data refreshed; local name, region and tags are kept.
-          </DialogContentText>
+          <DialogContentText sx={{ mb: 2 }}>{RESTOCK_TEXT.intro}</DialogContentText>
           {error && (
             <Alert severity="error" sx={{ mb: 2 }}>
               {error}
             </Alert>
           )}
+          <Stack
+            direction="row"
+            spacing={1}
+            useFlexGap
+            sx={{ flexWrap: 'wrap', mb: 2 }}
+            role="group"
+            aria-label={RESTOCK_TEXT.quickPicks}
+          >
+            {QUICK_PICKS.map((quickPick) => (
+              <Chip
+                key={quickPick.label}
+                label={quickPick.label}
+                variant="outlined"
+                color="primary"
+                disabled={running}
+                onClick={() => pick(quickPick.fromId, quickPick.toId)}
+              />
+            ))}
+          </Stack>
           <Grid container spacing={2} sx={{ mb: job ? 2 : 0 }}>
             {(['fromId', 'toId'] as const).map((field) => (
               <Grid key={field} size={6}>
                 <TextField
                   fullWidth
                   type="number"
-                  label={field === 'fromId' ? 'From #' : 'To #'}
+                  label={field === 'fromId' ? RESTOCK_TEXT.fromLabel : RESTOCK_TEXT.toLabel}
                   disabled={running}
-                  slotProps={{ htmlInput: { min: 1, max: MAX_POKEAPI_ID, step: 1 } }}
+                  slotProps={{
+                    htmlInput: { min: 1, max: MAX_POKEAPI_ID, step: 1 },
+                    inputLabel: { shrink: true },
+                  }}
                   {...register(field)}
                   error={Boolean(errors[field])}
                   helperText={errors[field]?.message}
@@ -122,9 +159,9 @@ export function SyncPokemonDialog({
           {job && <JobSummary job={job} />}
         </DialogContent>
         <DialogActions>
-          <Button onClick={onClose}>Close</Button>
+          <Button onClick={onClose}>{RESTOCK_TEXT.close}</Button>
           <Button type="submit" variant="contained" disabled={running || starting}>
-            Start sync
+            {RESTOCK_TEXT.start}
           </Button>
         </DialogActions>
       </form>

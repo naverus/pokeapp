@@ -11,6 +11,7 @@ import org.ballastlane.pokeapp.application.port.in.BulkSyncPokemonUseCase;
 import org.ballastlane.pokeapp.application.port.out.LocalPokemonRepositoryPort;
 import org.ballastlane.pokeapp.application.port.out.PokemonCatalogPort;
 import org.ballastlane.pokeapp.application.port.out.SyncJobStorePort;
+import org.ballastlane.pokeapp.domain.exception.CatalogUnavailableException;
 import org.ballastlane.pokeapp.domain.exception.PokemonAlreadySyncedException;
 import org.ballastlane.pokeapp.domain.exception.StaleVersionException;
 import org.ballastlane.pokeapp.domain.exception.SyncAlreadyRunningException;
@@ -23,6 +24,12 @@ public class BulkSyncPokemonService implements BulkSyncPokemonUseCase {
 
   private static final System.Logger log = System.getLogger(BulkSyncPokemonService.class.getName());
   private static final int MAX_ATTEMPTS = 2;
+
+  static final String NOT_IN_POKEDEX = "no Pokémon with this Pokédex number";
+  static final String POKEDEX_UNREACHABLE = "the Pokédex is unreachable right now";
+  static final String SAVE_FAILED = "something went wrong while saving it";
+  static final String COULD_NOT_START = "The restock couldn't start. Please try again.";
+  static final String INTERRUPTED = "The restock was interrupted. Please try again.";
 
   private enum Outcome {
     INSERTED,
@@ -54,17 +61,16 @@ public class BulkSyncPokemonService implements BulkSyncPokemonUseCase {
     Objects.requireNonNull(range, "range");
     SyncJob job;
     synchronized (startLock) {
-      jobs.findRunning()
-          .ifPresent(
-              running -> {
-                throw new SyncAlreadyRunningException(running.id());
-              });
+      if (jobs.findRunning().isPresent()) {
+        throw new SyncAlreadyRunningException();
+      }
       job = jobs.save(SyncJob.start(range, requestedBy, clock.instant()));
     }
     try {
       executor.execute(() -> run(job));
     } catch (RejectedExecutionException ex) {
-      return jobs.save(job.fail("Could not schedule the synchronization", clock.instant()));
+      log.log(Level.ERROR, "Pokemon synchronization " + job.id() + " could not be scheduled", ex);
+      return jobs.save(job.fail(COULD_NOT_START, clock.instant()));
     }
     return job;
   }
@@ -88,7 +94,7 @@ public class BulkSyncPokemonService implements BulkSyncPokemonUseCase {
       jobs.save(current.complete(clock.instant()));
     } catch (RuntimeException ex) {
       log.log(Level.ERROR, "Pokemon synchronization " + job.id() + " aborted", ex);
-      jobs.save(current.fail("Synchronization aborted: " + ex.getMessage(), clock.instant()));
+      jobs.save(current.fail(INTERRUPTED, clock.instant()));
     }
   }
 
@@ -96,11 +102,15 @@ public class BulkSyncPokemonService implements BulkSyncPokemonUseCase {
     try {
       var detail = catalog.findDetail(String.valueOf(pokeApiId));
       if (detail.isEmpty()) {
-        return job.recordFailed(pokeApiId, "not found in PokeAPI");
+        return job.recordFailed(pokeApiId, NOT_IN_POKEDEX);
       }
       return upsert(detail.get()) == Outcome.INSERTED ? job.recordInserted() : job.recordUpdated();
+    } catch (CatalogUnavailableException ex) {
+      log.log(Level.WARNING, "PokeAPI unavailable while syncing #" + pokeApiId, ex);
+      return job.recordFailed(pokeApiId, POKEDEX_UNREACHABLE);
     } catch (RuntimeException ex) {
-      return job.recordFailed(pokeApiId, ex.getMessage());
+      log.log(Level.WARNING, "Could not sync Pokemon #" + pokeApiId, ex);
+      return job.recordFailed(pokeApiId, SAVE_FAILED);
     }
   }
 

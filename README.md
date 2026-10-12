@@ -24,7 +24,7 @@ Demo credentials (seeded by Flyway):
 | User | Password | Role |
 |------|----------|------|
 | `ash` | `pikachu123` | USER: browse, sync, list, view and update local Pokemon |
-| `admin` | `admin123` | ADMIN: everything a USER can do, plus manual create, delete and bulk "Sync Pokemon data" |
+| `admin` | `admin123` | ADMIN: everything a USER can do, plus manual create, delete and bulk "Restock Collection" |
 
 The database is seeded with 10 Pokemon that already have custom fields, so the collection page works without calling PokeAPI.
 
@@ -78,7 +78,7 @@ Current results: the backend has 159 tests with 98% line coverage, and the front
 |-------|---------|----------|
 | **US01** Paginated list with sprite, category, mass and abilities | `GET /api/v1/pokemon?page&size` | Pokedex grid with pagination and page-size selector; signed-in users see an "In collection" badge on Pokemon already stored locally |
 | **US02** Image, stats, description and evolution chain | `GET /api/v1/pokemon/{idOrName}` | Detail page with stat bars and clickable evolution chain |
-| **US03** Copy into a local relational store with custom fields | `POST /api/v1/local-pokemon/sync/{idOrName}` (one Pokemon); `POST /api/v1/admin/sync-jobs` (on-demand bulk sync of an id range, ADMIN) | "Add to my collection" button; admin-only "Sync Pokemon data" button on the collection page with live progress and a summary |
+| **US03** Copy into a local relational store with custom fields | `POST /api/v1/local-pokemon/sync/{idOrName}` (one Pokemon); `POST /api/v1/admin/sync-jobs` (on-demand bulk sync of an id range, ADMIN) | "Add to my collection" button; admin-only "Restock Collection" button on the collection page with generation quick picks, live progress and a summary |
 | **US04** Update local data with validation | `PUT /api/v1/local-pokemon/{id}`: 400 for an invalid payload, 404 for a missing record, 409 for a stale version | Edit dialog with client-side validation and server errors shown next to each field |
 
 ### API
@@ -100,9 +100,9 @@ Current results: the backend has 159 tests with 98% line coverage, and the front
 | GET | `/api/v1/admin/sync-jobs/{id}` | ADMIN | job progress: `status`, `processed`/`total`, `inserted`, `updated`, `failed`, `errors` |
 | GET | `/api/v1/admin/sync-jobs/latest` | ADMIN | most recent job, or 204 if none has run since startup |
 
-#### Bulk synchronization
+#### Restock Collection (bulk sync)
 
-The admin "Sync Pokemon data" button starts a background job on virtual threads. For each PokeAPI id in the range, it inserts the Pokemon if it isn't stored yet. Otherwise it refreshes the catalog fields (name, category, height, weight, sprite, description, types and abilities) and keeps the proprietary ones (`localName`, `region`, `tags`). If an id fails, the job records the error and moves on to the next id. If a user edits a Pokemon at the same moment the job updates it (optimistic-lock conflict), the job re-reads the row and retries once. Only one job runs at a time. Job progress is kept in memory, so it is lost on restart; that is acceptable for a single-node deployment.
+The admin "Restock Collection" button (backed by the `/admin/sync-jobs` endpoints) starts a background job on virtual threads. For each PokeAPI id in the range, it inserts the Pokemon if it isn't stored yet. Otherwise it refreshes the catalog fields (name, category, height, weight, sprite, description, types and abilities) and keeps the proprietary ones (`localName`, `region`, `tags`). If an id fails, the job records the error and moves on to the next id. If a user edits a Pokemon at the same moment the job updates it (optimistic-lock conflict), the job re-reads the row and retries once. Only one job runs at a time. Job progress is kept in memory, so it is lost on restart; that is acceptable for a single-node deployment.
 
 Every error is an RFC 7807 `application/problem+json` response. Validation errors include an `errors` map from field name to message.
 
@@ -154,7 +154,7 @@ frontend/src
   features/auth          AuthProvider (context), login/register forms, ProtectedRoute
   features/catalog       US01 grid, US02 detail page, sync mutation
   features/collection    local CRUD: list/search, edit/create dialog, delete confirmation
-  features/sync          admin bulk sync: start dialog, job polling, progress and summary
+  features/sync          admin "Restock Collection": start dialog, job polling, progress and summary
   shared/api             axios client (JWT interceptor, 401 handling), types, query keys, ProblemDetail helpers
   shared/components      layout, type chips, loading and error states
   test                   MSW server, fixtures, renderApp helper

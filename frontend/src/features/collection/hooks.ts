@@ -17,6 +17,16 @@ export function useLocalPokemonPage(page: number, size: number, name: string) {
   });
 }
 
+/** Total number of Pokémon in the collection, ignoring any search filter. */
+export function useCollectionSize(): number | undefined {
+  const { data } = useQuery({
+    queryKey: queryKeys.localPage(0, 1, ''),
+    queryFn: () => fetchLocalPokemon(0, 1, ''),
+    select: (result) => result.totalElements,
+  });
+  return data;
+}
+
 const NO_IDS: ReadonlySet<number> = new Set();
 
 /** PokeAPI ids (of the given ones) already stored locally; empty while unknown or disabled. */

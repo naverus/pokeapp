@@ -35,6 +35,22 @@ describe('CollectionPage (CRUD + US04)', () => {
     expect(lastName).toBe('zz');
   });
 
+  it('counts the Pokémon in the collection and how many match the search', async () => {
+    server.use(
+      http.get(`${API}/local-pokemon`, ({ request }) => {
+        const params = new URL(request.url).searchParams;
+        const total = params.get('name') ? 2 : 42;
+        return HttpResponse.json(page([storedPikachu], 0, Number(params.get('size')), total));
+      }),
+    );
+    const { user } = renderApp('/collection', { as: ASH });
+
+    expect(await screen.findByLabelText('Pokémon count: 42 Pokémon')).toBeInTheDocument();
+    await user.type(screen.getByRole('textbox', { name: 'Search by name' }), 'pika');
+
+    expect(await screen.findByLabelText('Pokémon count: 2 of 42 Pokémon')).toBeInTheDocument();
+  });
+
   it('updates a Pokemon sending the version and list fields', async () => {
     let received: UpdateLocalPokemonPayload | null = null;
     server.use(
