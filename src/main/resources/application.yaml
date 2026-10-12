@@ -5,9 +5,9 @@ spring:
     virtual:
       enabled: true
   datasource:
-    url: ${DB_URL:jdbc:mysql://localhost:3307/pokeapp}
-    username: ${DB_USERNAME:pokeapp}
-    password: ${DB_PASSWORD:pokeapp}
+    url: ${POKEAPP_DB_URL:jdbc:mysql://localhost:3307/pokeapp}
+    username: ${POKEAPP_DB_USERNAME:pokeapp}
+    password: ${POKEAPP_DB_PASSWORD:pokeapp}
   jpa:
     open-in-view: false
     hibernate:
@@ -47,13 +47,13 @@ springdoc:
 
 pokeapp:
   pokeapi:
-    base-url: ${POKEAPI_BASE_URL:https://pokeapi.co/api/v2}
+    base-url: ${POKEAPP_POKEAPI_BASE_URL:https://pokeapi.co/api/v2}
     connect-timeout: 3s
     read-timeout: 10s
     max-concurrency: 16
   security:
-    jwt-secret: ${JWT_SECRET:change-me-in-production-this-is-a-local-dev-secret-of-64-bytes!!}
-    token-ttl: ${JWT_TTL:2h}
+    jwt-secret: ${POKEAPP_JWT_SECRET:change-me-in-production-this-is-a-local-dev-secret-of-64-bytes!!}
+    token-ttl: ${POKEAPP_JWT_TTL:2h}
     issuer: pokeapp
   cors:
-    allowed-origins: ${CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}
+    allowed-origins: ${POKEAPP_CORS_ALLOWED_ORIGINS:http://localhost:5173,http://localhost:3000}

@@ -28,7 +28,25 @@ Demo credentials (seeded by Flyway):
 
 The database is seeded with 10 Pokemon that already have custom fields, so the collection page works without calling PokeAPI.
 
-To use a different host port for MySQL, set `MYSQL_HOST_PORT=3306 docker compose up` (the default is 3307 to avoid clashing with a local MySQL). Override `JWT_SECRET` (at least 32 bytes) outside of demos.
+To use a different host port for MySQL, set `MYSQL_HOST_PORT=3306 docker compose up` (the default is 3307 to avoid clashing with a local MySQL). Override `POKEAPP_JWT_SECRET` (at least 32 bytes) outside of demos.
+
+### Configuration
+
+Every backend environment variable starts with `POKEAPP_`, so it can't collide with generic variables such as `DB_USERNAME` that other projects export in your shell.
+
+| Variable | Default |
+|----------|---------|
+| `POKEAPP_DB_URL` | `jdbc:mysql://localhost:3307/pokeapp` |
+| `POKEAPP_DB_USERNAME` / `POKEAPP_DB_PASSWORD` | `pokeapp` / `pokeapp` |
+| `POKEAPP_JWT_SECRET` | development-only secret (at least 32 bytes) |
+| `POKEAPP_JWT_TTL` | `2h` |
+| `POKEAPP_CORS_ALLOWED_ORIGINS` | `http://localhost:5173,http://localhost:3000` |
+| `POKEAPP_POKEAPI_BASE_URL` | `https://pokeapi.co/api/v2` |
+
+### Troubleshooting
+
+- **`Access denied for user 'root'@...` on `./gradlew bootRun`.** The datasource credentials are being overridden. Run `env | grep POKEAPP_` and unset any stale `POKEAPP_DB_*` value. Also check that the `mysql` service is running (`docker compose up -d mysql`); it listens on port 3307.
+- **`SPRING_PROFILES_ACTIVE` exported in your shell** (for example `dev`) is harmless: the app has no profile-specific configuration.
 
 ## Local development
 

@@ -28,11 +28,11 @@ services:
       mysql:
         condition: service_healthy
     environment:
-      DB_URL: jdbc:mysql://mysql:3306/pokeapp
-      DB_USERNAME: pokeapp
-      DB_PASSWORD: pokeapp
-      JWT_SECRET: ${JWT_SECRET:-docker-compose-demo-secret-change-me-please-0123456789}
-      CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      POKEAPP_DB_URL: jdbc:mysql://mysql:3306/pokeapp
+      POKEAPP_DB_USERNAME: pokeapp
+      POKEAPP_DB_PASSWORD: pokeapp
+      POKEAPP_JWT_SECRET: ${POKEAPP_JWT_SECRET:-docker-compose-demo-secret-change-me-please-0123456789}
+      POKEAPP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
     ports:
       - "8080:8080"
 
