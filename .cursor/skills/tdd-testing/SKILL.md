@@ -1,6 +1,6 @@
 ---
 name: tdd-testing
-description: Test-driven development workflow and testing standards for the PokeApp (Spring Boot backend and React frontend) - red/green/refactor loop, which test type per layer, naming, tooling and coverage gates. Use when writing or changing production code, adding tests, fixing bugs, or when the user mentions TDD, tests, coverage, JUnit, Mockito, Vitest or Testing Library.
+description: Test-driven development workflow and testing standards for the PokeApp polyglot backends (Vert.x, Quarkus, Micronaut) and React frontend - red/green/refactor loop, which test type per layer, naming, tooling and coverage gates. Use when writing or changing production code, adding tests, fixing bugs, or when the user mentions TDD, tests, coverage, JUnit, Mockito, Vitest or Testing Library.
 ---
 
 # TDD and Testing (PokeApp)
@@ -13,25 +13,23 @@ description: Test-driven development workflow and testing standards for the Poke
 - [ ] GREEN: write the minimum production code to pass
 - [ ] Run the whole relevant test class
 - [ ] REFACTOR: remove duplication, improve names; tests stay green
-- [ ] Repeat; run `./gradlew check` (or `npm test`) before finishing
+- [ ] Repeat; run that service's `./gradlew test` (or `npm test`) before finishing
 ```
 
 Bug fixes start with a test that reproduces the bug.
 
 ## Test type per layer (backend)
 
-| Layer | Test type | Tools | Spring context |
-|-------|-----------|-------|----------------|
-| `domain` | Pure unit | JUnit 5, AssertJ | none |
-| `application.service` | Unit with mocked output ports | Mockito (`@ExtendWith(MockitoExtension.class)`) | none |
-| `infrastructure.pokeapi` | Adapter test against stubbed HTTP | WireMock (`WireMockExtension`) | none (build `RestClient` manually) |
-| `infrastructure.persistence` | Slice test with real MySQL | `@DataJpaTest` + Testcontainers `MySQLContainer` (`@ServiceConnection`), Flyway enabled | JPA slice |
-| `infrastructure.security` | Unit | JUnit | none |
-| `web` | Controller slice | `@WebMvcTest`, `MockMvc`, `@MockitoBean` input ports, `spring-security-test` | MVC slice |
-| architecture | Rules | ArchUnit | none |
-| end-to-end | Smoke | `@SpringBootTest` + Testcontainers (skipped automatically when Docker is unavailable via `@Testcontainers(disabledWithoutDocker = true)`) | full |
+| Layer | Test type | Tools |
+|-------|-----------|-------|
+| `domain` | Pure unit | JUnit 5 |
+| `application.service` | Unit with mocked output ports | Mockito |
+| PokeAPI adapters | Stubbed HTTP | WireMock / in-process stub / `@QuarkusTest` |
+| Persistence (collection) | Real MySQL | Testcontainers + Flyway |
+| HTTP | Framework test | Vert.x WebClient, `@QuarkusTest`, Micronaut `@MicronautTest` |
+| Cross-service | Manual / compose smoke | curl through nginx gateway |
 
-Never use `@SpringBootTest` for something a unit or slice test can cover.
+Prefer unit tests over full framework boot. Use Testcontainers only when persistence behaviour is under test.
 
 ## Conventions
 

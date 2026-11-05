@@ -1,11 +1,1 @@
-.git
-.gradle
-.idea
-build
-bin
-out
-*.iml
-*.pdf
-frontend
-docs
-.cursor
+# Root has no single backend image; each service has its own Dockerfile.

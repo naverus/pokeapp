@@ -2,6 +2,10 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+const authTarget = process.env.VITE_AUTH_PROXY_TARGET ?? 'http://localhost:8081';
+const catalogTarget = process.env.VITE_CATALOG_PROXY_TARGET ?? 'http://localhost:8082';
+const collectionTarget = process.env.VITE_COLLECTION_PROXY_TARGET ?? 'http://localhost:8083';
+
 export default defineConfig({
   plugins: [react()],
   build: {
@@ -18,8 +22,20 @@ export default defineConfig({
   server: {
     port: 5173,
     proxy: {
-      '/api': {
-        target: process.env.VITE_API_PROXY_TARGET ?? 'http://localhost:8080',
+      '/api/v1/auth': {
+        target: authTarget,
+        changeOrigin: true,
+      },
+      '/api/v1/pokemon': {
+        target: catalogTarget,
+        changeOrigin: true,
+      },
+      '/api/v1/local-pokemon': {
+        target: collectionTarget,
+        changeOrigin: true,
+      },
+      '/api/v1/admin': {
+        target: collectionTarget,
         changeOrigin: true,
       },
     },

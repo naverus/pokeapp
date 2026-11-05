@@ -20,10 +20,10 @@ services:
       retries: 30
       start_period: 20s
 
-  backend:
+  # Flyway owner: creates users + pokemon schema and seeds demo data
+  collection:
     build:
-      context: .
-      dockerfile: Dockerfile
+      context: ./services/collection-micronaut
     depends_on:
       mysql:
         condition: service_healthy
@@ -33,14 +33,46 @@ services:
       POKEAPP_DB_PASSWORD: pokeapp
       POKEAPP_JWT_SECRET: ${POKEAPP_JWT_SECRET:-docker-compose-demo-secret-change-me-please-0123456789}
       POKEAPP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      POKEAPP_POKEAPI_BASE_URL: ${POKEAPP_POKEAPI_BASE_URL:-https://pokeapi.co/api/v2}
+      PORT: "8083"
     ports:
-      - "8080:8080"
+      - "8083:8083"
+
+  auth:
+    build:
+      context: ./services/auth-vertx
+    depends_on:
+      collection:
+        condition: service_healthy
+    environment:
+      POKEAPP_DB_URL: jdbc:mysql://mysql:3306/pokeapp
+      POKEAPP_DB_USERNAME: pokeapp
+      POKEAPP_DB_PASSWORD: pokeapp
+      POKEAPP_JWT_SECRET: ${POKEAPP_JWT_SECRET:-docker-compose-demo-secret-change-me-please-0123456789}
+      POKEAPP_JWT_TTL: ${POKEAPP_JWT_TTL:-2h}
+      POKEAPP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      HTTP_PORT: "8081"
+    ports:
+      - "8081:8081"
+
+  catalog:
+    build:
+      context: ./services/catalog-quarkus
+    environment:
+      POKEAPP_POKEAPI_BASE_URL: ${POKEAPP_POKEAPI_BASE_URL:-https://pokeapi.co/api/v2}
+      POKEAPP_CORS_ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+    ports:
+      - "8082:8082"
 
   frontend:
     build:
       context: ./frontend
     depends_on:
-      backend:
+      auth:
+        condition: service_healthy
+      catalog:
+        condition: service_healthy
+      collection:
         condition: service_healthy
     ports:
       - "3000:80"
