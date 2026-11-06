@@ -30,7 +30,7 @@ Preserved from the Spring monolith (`spring-monolith` tag).
 |------|--------|
 | `POST /api/v1/auth/register`, `POST /api/v1/auth/login` | public |
 | `GET /api/v1/pokemon/**` | public |
-| `GET|PUT|POST /api/v1/local-pokemon/**` (except create/delete) | authenticated USER+ |
+| `GET\|PUT\|POST /api/v1/local-pokemon/**` (except create/delete) | authenticated USER+ |
 | `POST /api/v1/local-pokemon`, `DELETE /api/v1/local-pokemon/{id}` | ADMIN |
 | `/api/v1/admin/**` | ADMIN |
 
