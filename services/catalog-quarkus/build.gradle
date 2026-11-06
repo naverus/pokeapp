@@ -3,7 +3,7 @@ plugins {
     id 'io.quarkus'
 }
 
-group = 'org.ballastlane'
+group = 'org.pokeapp'
 version = '0.0.1-SNAPSHOT'
 description = 'catalog-quarkus - public PokeAPI catalog microservice'
 

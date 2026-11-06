@@ -54,7 +54,7 @@ datasources:
 jpa:
   default:
     packages-to-scan:
-      - org.ballastlane.pokeapp.infrastructure.persistence.entity
+      - org.pokeapp.infrastructure.persistence.entity
     properties:
       hibernate:
         hbm2ddl:

@@ -9,9 +9,9 @@ Three Gradle services under `services/`. Each keeps Clean Architecture packages;
 
 | Service | Root package | HTTP stack |
 |---------|--------------|------------|
-| `services/auth-vertx` | `org.ballastlane.pokeapp.auth` | Vert.x Web |
-| `services/catalog-quarkus` | `org.ballastlane.pokeapp.catalog` | Quarkus REST + Vert.x WebClient |
-| `services/collection-micronaut` | `org.ballastlane.pokeapp` | Micronaut |
+| `services/auth-vertx` | `org.pokeapp.auth` | Vert.x Web |
+| `services/catalog-quarkus` | `org.pokeapp.catalog` | Quarkus REST + Vert.x WebClient |
+| `services/collection-micronaut` | `org.pokeapp` | Micronaut |
 
 ## Layer map (per service)
 

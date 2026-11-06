@@ -4,7 +4,7 @@ plugins {
     id 'com.gradleup.shadow' version '9.0.0'
 }
 
-group = 'org.ballastlane.pokeapp'
+group = 'org.pokeapp'
 version = '0.1.0'
 
 java {
@@ -52,7 +52,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'org.ballastlane.pokeapp.auth.Main'
+    mainClass = 'org.pokeapp.auth.Main'
 }
 
 tasks.named('test') {
@@ -65,7 +65,7 @@ shadowJar {
     archiveVersion = ''
     mergeServiceFiles()
     manifest {
-        attributes 'Main-Class': 'org.ballastlane.pokeapp.auth.Main'
+        attributes 'Main-Class': 'org.pokeapp.auth.Main'
     }
 }
 

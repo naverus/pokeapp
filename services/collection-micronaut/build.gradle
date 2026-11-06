@@ -3,7 +3,7 @@ plugins {
     id 'io.micronaut.application' version '4.6.2'
 }
 
-group = 'org.ballastlane'
+group = 'org.pokeapp'
 version = '0.0.1'
 
 java {
@@ -53,7 +53,7 @@ dependencies {
 }
 
 application {
-    mainClass = 'org.ballastlane.pokeapp.Application'
+    mainClass = 'org.pokeapp.Application'
 }
 
 micronaut {
@@ -61,7 +61,7 @@ micronaut {
     testRuntime('junit5')
     processing {
         incremental(true)
-        annotations('org.ballastlane.pokeapp.*')
+        annotations('org.pokeapp.*')
     }
 }
 
