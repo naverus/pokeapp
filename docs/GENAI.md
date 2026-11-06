@@ -1,5 +1,9 @@
 # Generative AI exercise: Task management API
 
+> Historical note: this exercise was written against the Spring Boot monolith.
+> Checkout tag `spring-monolith` if you want to replay it against that codebase.
+> The current default branch is a polyglot Vert.x / Quarkus / Micronaut split.
+
 ## 1. Prompt
 
 Tool: Cursor (Agent mode). I first gave the agent the three project skills in `.cursor/skills`, so the generated code follows the same architecture, testing and quality rules as PokeApp.
